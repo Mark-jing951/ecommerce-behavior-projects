@@ -1,4 +1,19 @@
 # E-commerce Behavior Projects
+The original dataset is too large to upload directly to this repository.
+
+You can access the dataset from Kaggle:
+- Kaggle dataset link: [https://www.kaggle.com/code/varshnidevi/ecommerce-behavior-data-from-multi-category-store/notebook]
+
+Main fields used in this project:
+- event_time
+- event_type
+- product_id
+- user_id
+- category_code
+- brand
+- price
+- user_session
+
 
 ## 1. Recommender System
 ### 1.1 Project Goal
