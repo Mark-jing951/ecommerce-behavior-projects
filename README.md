@@ -73,7 +73,7 @@
 ### 2.4 Class Imbalance / Label Distribution
 
 此資料集具有明顯的類別不平衡問題，label = 0（未購買）遠多於 label = 1（已購買）。
-![Label Distribution](images/label_distribution.png)
+![Label Distribution](images/Label_Distribution.png)
 
 
 ### 2.5 Baseline Model
