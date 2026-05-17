@@ -1,88 +1,89 @@
-# E-commerce Behavior Projects
+# E-Commerce Behavior Analysis Projects
+
+A collection of machine learning projects built on real e-commerce behavioral data, covering recommender systems, purchase prediction, and user behavior analysis.
+
+**Dataset:** [eCommerce Behavior Data from Multi Category Store](https://www.kaggle.com/code/varshnidevi/ecommerce-behavior-data-from-multi-category-store/notebook) — 1M+ user interaction records (Nov 2019)
+
+**Key Fields:** `event_time` · `event_type` · `product_id` · `user_id` · `category_code` · `brand` · `price` · `user_session`
+
+---
+
+## Projects Overview
+
+| # | Project | Method | Status |
+|---|---------|--------|--------|
+| 1 | Recommender System | Item-based Collaborative Filtering | ✅ Complete |
+| 2 | Purchase Prediction | Logistic Regression + Time Split | ✅ Complete |
+
+---
 
 ## 1. Recommender System
-### 1.1 Project Goal
-利用電商購物行為建立商品推薦系統，根據使用者過去互動過的商品，推薦可能感興趣的其他商品。
 
+### Goal
+Build a product recommendation system based on user interaction history, recommending items the user is likely to be interested in.
 
-### 1.2 Dataset
-- event_time
-- event_type
-- product_id
-- user_id
-- brand
-- price
-- user_session
+### Method — Item-based Collaborative Filtering
 
+1. Map `event_type` to interaction strength (`event_score`)
+   - view = 1 · cart = 2 · purchase = 3
+2. Build a `product_id × user_id` interaction matrix
+3. Compute item-to-item similarity using cosine similarity
+4. Aggregate similarity scores based on user history
+5. Exclude already-interacted items and return Top-N recommendations
 
-### 1.3 Method
-本專案採用**Item-based Collaborative Filtering**
+### Train / Test Split
+Time-based split to prevent data leakage:
+- **Train:** earlier interactions
+- **Test:** later interactions (purchase events only, as ground truth)
 
-主要流程如下：
-- 將 ‵event_type‵ 轉換為 ‵event_score‵
-    - view = 1
-    - cart = 2
-    - purchase = 3
-- 建立 `product_id x user_id` 的互動矩陣
-- 使用 `cosine_similarity` 計算商品與商品之間的相似度
-- 根據使用者歷史互動商品，累加相似度的商品分數
-- 排除使用者已互動過的商品
-- 產生 Top-N 推薦結果
+### Results
 
+![User Behavior Funnel](images/funnel_chart.png)
 
-### 1.4 Train / Test Split:
-使用時間切分方式建立訓練集與測試集:
-- train:較早互動的時間資料
-- test:較晚互動的時間資料
+![Precision Recall F1 by K](images/Precision_recall_f1.png)
 
-在評估時，test 保留 `purchase` 作為實際答案，用來檢查推薦結果是否命中使用者真正會購買的商品。
+| K | Precision@K | Recall@K | F1@K |
+|---|-------------|----------|------|
+| 3  | 0.049 | 0.140 | 0.073 |
+| 10 | 0.028 | 0.267 | 0.051 |
+| 20 | 0.019 | 0.359 | 0.036 |
 
-### 1.5 Evaluation
-使用以下指標來評估推薦效果:
-- Precision@K
-- Recall@K
-- F1@K
+### Key Learnings
+- Item-based Collaborative Filtering generates recommendations via item similarity scores
+- Cosine similarity is well-suited for sparse interaction matrices
+- As K increases, Recall rises but Precision drops — K=3 achieved the best F1 balance
+- Recommendation evaluation focuses not just on model building, but on hit rate validation
 
-### 1.6 Key Learnings
-- Item-based Collaborative Filtering 可以用商品相似度產生推薦結果
-- `cosine_similarity` 適合用在稀疏互動矩陣
-- K值增加時，通常recall會提高，但precision可能會下降
-- 推薦系統評估重點不只是模型建立，也包含推薦的命中機率並驗證
+---
 
-================================================================================
+## 2. Purchase Prediction
 
-## 2. Purchase Prediction Project
-### 2.1 Project Goal
-使用電商行為資料，建立 Purchase Prediction Model，預測使用者未來是否會購買某商品。
+### Goal
+Using past behavioral data to predict whether a user will purchase a specific product in the future.
 
+### Problem Setting
+- **Features (X):** built from past interactions (view count, cart count)
+- **Label (y):** whether the user made a purchase in the future window
+- **Split:** time-based to avoid look-ahead bias
 
-### 2.2 Dataset
-- event_time
-- event_type
-- product_id
-- user_id
-- price
+### Class Imbalance
 
+Label distribution is highly imbalanced — non-purchase events far outnumber purchases.
 
-### 2.3 Problem Setting
-- past data: 建立特徵
-- future data: 建立label
-- label = 未來是否 purchase
+![Label Distribution](images/Label_Distribution.png)
 
+### Model — Logistic Regression (Baseline)
 
-### 2.4 Class Imbalance / Label Distribution
+Applied `class_weight="balanced"` to handle imbalance, and StandardScaler for normalization.
 
-此資料集具有明顯的類別不平衡問題，label = 0（未購買）遠多於 label = 1（已購買）。
-![Label Distribution](images/label_distribution.png)
+### Results
 
+![Confusion Matrix](images/confusion_matrix.png)
 
-### 2.5 Baseline Model
-使用 Logistic Regression 建立 baseline model。
+![Confusion Matrix Normalized](images/confusion_matrix%20values%25.png)
 
-
-### 2.6 Evaluation
 | Metric | Score |
-|---|---:|
+|--------|-------|
 | Precision | 0.06 |
 | Recall | 0.22 |
 | F1-score | 0.09 |
@@ -90,7 +91,7 @@
 ### Threshold Comparison
 
 | Threshold | Precision | Recall | F1-score |
-|---|---:|---:|---:|
+|-----------|-----------|--------|----------|
 | 0.3 | 0.005 | 1.000 | 0.010 |
 | 0.5 | 0.026 | 0.584 | 0.049 |
 | 0.7 | 0.038 | 0.363 | 0.069 |
@@ -99,24 +100,46 @@
 ### Before vs After Standardization
 
 | Setting | Precision | Recall | F1-score |
-|---|---:|---:|---:|
+|---------|-----------|--------|----------|
 | Without StandardScaler | 0.056 | 0.217 | 0.089 |
 | With StandardScaler | 0.060 | 0.220 | 0.090 |
 
-### Confusion Matrix at Threshold = 0.9
+### Key Learnings
+- Time-based splitting is essential to prevent data leakage in sequential data
+- Class imbalance significantly impacts model performance — accuracy alone is misleading
+- Threshold tuning directly controls the Precision / Recall trade-off
+- FN (missed buyers) is the most costly error in a purchase prediction context
+- StandardScaler provides marginal improvement for Logistic Regression
 
-| Actual \ Predicted | 0 | 1 |
-|---|---:|---:|
-| 0 | 168855 | 3172 |
-| 1 | 680 | 188 |
+### Conclusion
+This project established a purchase prediction pipeline using time-based splitting and Logistic Regression as a baseline. Results confirm that under severe class imbalance, threshold adjustment and feature standardization improve performance. Next steps include feature engineering (session-level aggregation, recency features) and resampling techniques (SMOTE) to further improve recall on the minority class.
 
+---
 
-### 2.7 Key Learnings
-- 需要時間切分避免資料洩漏
-- 類別不平衡會影響模型表現
-- threshold 會影響 precision / recall
-- 標準化對 Logistic Regression 有幫助
+## Tech Stack
 
+![Python](https://img.shields.io/badge/Python-3.x-blue)
+![Pandas](https://img.shields.io/badge/Pandas-lightgrey)
+![Scikit-learn](https://img.shields.io/badge/Scikit--learn-orange)
+![Matplotlib](https://img.shields.io/badge/Matplotlib-green)
+![Seaborn](https://img.shields.io/badge/Seaborn-teal)
 
-### 2.8 Conclusion
-本專案使用時間切分方式建立 Purchase Prediction 流程，並以 Logistic Regression 作為 baseline model。結果顯示，在高度不平衡下，使用threshold 調整與標準化都能夠幫助模型表現更好，後續可以透過新增特徵與優化抽樣方式，進一步改善預測能力。
+```
+pandas · numpy · scikit-learn · matplotlib · seaborn
+```
+
+## File Structure
+
+```
+├── recommender_system.ipynb        # Item-based CF recommender
+├── recommender_system_practice.ipynb  # Practice notebook
+├── Purchase Prediction.ipynb       # Purchase prediction model
+├── images/                         # Visualization outputs
+│   ├── funnel_chart.png
+│   ├── Precision_recall_f1.png
+│   ├── confusion_matrix.png
+│   ├── confusion_matrix values%.png
+│   └── Label_Distribution.png
+├── requirements.txt
+└── README.md
+```
